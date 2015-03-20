@@ -1,0 +1,62 @@
+div {
+  display: inline-block;
+  position: relative;
+}
+
+ul {
+  background-color: #FFF;
+  border: 1px solid rgb(169, 169, 169);
+  
+  list-style-type: none;
+
+  box-sizing: border-box;
+  max-height: calc(20 * 18px);
+  padding: 0;
+  margin: 0;
+  width: max-content;
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  min-width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: absolute;
+  
+  display: none;
+  
+  z-index: 1;
+}
+
+ul.is-visible {
+  display: block;
+}
+
+li {
+  font: normal normal normal 13.3333330154419px/normal sans-serif;
+  height: 18px;
+  float: left;
+  clear: left;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-right: .5em;
+}
+
+li:hover {
+  cursor: pointer;
+}
+
+li.is-selected {
+  background-color: rgb(200, 200, 200);
+}
+
+input:focus ~ ul > li.is-selected {
+  background-color: rgb(30, 144, 255);
+}
+
+input[type=text].is-invalid {
+  border-color: red;
+  border-style: solid;
+  outline-color: red;
+  
+  transition: border-color .2s ease-out, outline-color .2s ease-out;
+}
