@@ -26,7 +26,7 @@ module.exports = {
             name: 'tests.js',
             dir: './dist'
         },
-        runtimeFiles: [ './test/**/*.js' ],
+        runtimeFiles: [ './test/phantomjs-extensions.js' ],
         runnerConfig: './karma.conf.js'
     }
 }

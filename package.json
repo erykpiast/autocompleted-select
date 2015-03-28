@@ -23,7 +23,8 @@
   },
   "homepage": "https://github.com/erykpiast/autocompleted-select",
   "dependencies": {
-    "cyclejs": "~0.11"
+    "cyclejs": "~0.11",
+    "ramda": "^0.13.0"
   },
   "devDependencies": {
     "aliasify": "~1.7",
@@ -31,6 +32,7 @@
     "brfs": "~1.4",
     "browserify": "~9.0",
     "chai": "~2.1",
+    "chai-equal-collection": "erykpiast/chai-equal-collection",
     "extend": "~2.0",
     "glob": "~5.0",
     "gulp": "~3.8",

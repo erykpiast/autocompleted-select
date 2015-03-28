@@ -36,6 +36,7 @@ module.exports = function buildTestsTask(before, after) {
     }))
     .on('update', _build);
 
+    var building = false;
     function _build(changedFiles) {
         gutil.log('building is starting...');
 
@@ -43,17 +44,28 @@ module.exports = function buildTestsTask(before, after) {
             gutil.log([ 'files to rebuild:' ].concat(changedFiles).join('\n'));
         }
 
-        return before(changedFiles)
-            .pipe(bundler.bundle())
-            .on('error', function(err) {
-                gutil.log('Browserify error:', err.message);
-            })
-            .pipe(source(config.test.bundle.name))
-            .pipe(gulp.dest(config.test.bundle.dir))
-            .on('finish', function() {
-                gutil.log('building finished!');
-            })
-            .pipe(after(changedFiles));
+
+        if(!building) {
+            building = true;
+
+            return before(changedFiles)
+                .pipe(bundler.bundle())
+                .pipe(source(config.test.bundle.name))
+                .pipe(gulp.dest(config.test.bundle.dir))
+                .pipe(after(changedFiles))
+                .on('error', function(err) {
+                    building = false;
+                    
+                    gutil.log('Building error', err.message);
+                })
+                .on('end', function() {
+                    building = false;
+                    
+                    gutil.log('Building finished!');
+                });
+        } else {
+            return null;
+        }
     };
 
     return function() {
