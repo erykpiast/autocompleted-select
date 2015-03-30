@@ -23,6 +23,8 @@ xtag.register('autocompleted-select', {
             this._model = model();
             this._view = view();
             this._intent = intent();
+            this._user = Cycle.createDOMUser(this.shadowRoot);
+
             this._inputAttributes = Cycle.createDataFlowSource({
                 datalist$: attributes$
                     .filter((ev) => (ev.attrName === 'datalist'))
@@ -45,10 +47,10 @@ xtag.register('autocompleted-select', {
                     }.bind(this));
             }.bind(this));
 
-            this._intent.inject(this._view, this._inputAttributes);
+            this._intent.inject(this._user, this._inputAttributes);
             this._view.inject(this._model);
             this._model.inject(this._intent, this._inputAttributes);
-            Cycle.createRenderer(this.shadowRoot).inject(this._view);
+            this._user.inject(this._view);
 
             this._outputAttributes.inject(this._model);
 

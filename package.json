@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/erykpiast/autocompleted-select",
   "dependencies": {
-    "cyclejs": "~0.11",
+    "cyclejs": "~0.17",
     "ramda": "^0.13.0"
   },
   "devDependencies": {
@@ -50,6 +50,7 @@
     "karma-mocha": "~0.1",
     "karma-mocha-reporter": "~1.0",
     "karma-phantomjs-launcher": "~0.1",
+    "lodash.assign": "^3.0.0",
     "lodash.foreach": "~3.0",
     "mocha": "~2.2",
     "proxyquireify": "~1.2",

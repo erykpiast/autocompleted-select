@@ -14,14 +14,10 @@ export default function createAutocompletedTextView() {
                 autocompletedTextModel.get('isValueInvalid$'),
                 (value, autocompletions, areAutocompletionsVisible, highlightedAutocompletionIndex, isValueInvalid) =>
                 h('div', [
-                    h('input', {
+                    h('input#field', {
                         type: 'text',
                         value: value,
-                        className: isValueInvalid ? 'is-invalid' : '',
-                        oninput: 'change$',
-                        onkeydown: 'keydown$',
-                        onfocus: 'focus$',
-                        onblur: 'blur$'
+                        className: isValueInvalid ? 'is-invalid' : ''
                     }),
                     h('ul', {
                         scrollTop: Cycle.vdomPropHook((element, property) => {
@@ -41,11 +37,9 @@ export default function createAutocompletedTextView() {
                             }
                         }),
                         className: areAutocompletionsVisible ? 'is-visible' : ''
-                    }, autocompletions.map((keyword, index) => h('li', {
+                    }, autocompletions.map((keyword, index) => h('li.autocompletion', {
                         index: index,
-                        className: highlightedAutocompletionIndex === index ? 'is-selected' : '',
-                        onmouseenter: 'hover$',
-                        onmousedown: 'click$'
+                        className: highlightedAutocompletionIndex === index ? 'is-selected' : ''
                     }, keyword)))
                 ])
             )

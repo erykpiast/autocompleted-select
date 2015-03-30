@@ -8,21 +8,21 @@ const ENTER = 13;
 
 
 export default function createAutocompletedTextIntent() {
-    return Cycle.createIntent(function (autocompletedTextView, inputAttributes) {
-        var up$ = autocompletedTextView.get('keydown$').filter(({ keyCode }) => (keyCode === UP));
-        var down$ = autocompletedTextView.get('keydown$').filter(({ keyCode }) => (keyCode === DOWN));
-        var enter$ = autocompletedTextView.get('keydown$').filter(({ keyCode }) => (keyCode === ENTER));
+    return Cycle.createIntent(function (autocompletedTextUser, inputAttributes) {
+        var up$ = autocompletedTextUser.event$('#field', 'keydown').filter(({ keyCode }) => (keyCode === UP));
+        var down$ = autocompletedTextUser.event$('#field', 'keydown').filter(({ keyCode }) => (keyCode === DOWN));
+        var enter$ = autocompletedTextUser.event$('#field', 'keydown').filter(({ keyCode }) => (keyCode === ENTER));
 
-        var notEnter$ = autocompletedTextView.get('keydown$').filter(({ keyCode }) => (keyCode !== ENTER));
+        var notEnter$ = autocompletedTextUser.event$('#field', 'keydown').filter(({ keyCode }) => (keyCode !== ENTER));
 
         return {
             valueChange$: Rx.Observable.merge(
-                autocompletedTextView.get('change$')
+                autocompletedTextUser.event$('#field', 'input')
                     .map(({ target }) => target.value),
                 inputAttributes.get('value$')
             ).distinctUntilChanged(),
             selectedAutocompletionInput$: Rx.Observable.merge(
-                autocompletedTextView.get('hover$')
+                autocompletedTextUser.event$('.autocompletion', 'mouseenter')
                     .map(({ target }) => ({
                         direct: target.index
                     })),
@@ -33,17 +33,17 @@ export default function createAutocompletedTextIntent() {
             ).startWith(0),
             selectedAutocompletionChange$: Rx.Observable.merge(
                 enter$,
-                autocompletedTextView.get('click$')
+                autocompletedTextUser.event$('.autocompletion', 'mousedown')
             ).map(() => true),
             showAutocompletions$: Rx.Observable.merge(
                 notEnter$,
-                autocompletedTextView.get('focus$')
+                autocompletedTextUser.event$('#field', 'focus')
             ).map(() => true),
             hideAutocompletions$: Rx.Observable.merge(
                 enter$,
-                autocompletedTextView.get('blur$')
+                autocompletedTextUser.event$('#field', 'blur')
             ).map(() => true),
-            finish$: autocompletedTextView.get('blur$')
+            finish$: autocompletedTextUser.event$('#field', 'blur')
                 .map(() => true)
         };
     });
