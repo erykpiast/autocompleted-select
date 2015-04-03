@@ -1,21 +1,18 @@
 /* global suite, setup, teardown, test */
 
-import assign from 'lodash.assign';
-
-import DataFlowNode from 'cyclejs/lib/data-flow-node';
-
-import 'cyclejs/node_modules/rx/dist/rx.virtualtime';
-import Rx from 'cyclejs/node_modules/rx/dist/rx';
-import { ReactiveTest } from 'cyclejs/node_modules/rx/dist/rx.testing';
-
 import chai from 'chai';
 import { assert } from 'chai';
+
+// has to be imported before Rx
+import inject from './cycle-mock';
+
+import { Rx } from 'cyclejs';
+
+import DataFlowNode from 'cyclejs/lib/data-flow-node';
 
 import intent from '../intent';
 
 chai.use(require('chai-equal-collection')(Rx.internals.isEqual));
-
-var onNext = ReactiveTest.onNext;
 
 
 suite('intent', () => {
@@ -52,65 +49,18 @@ suite('intent', () => {
 
     suite('I/O', () => {
         var intentInstance;
-        var fakeView, fakeAttrs;
-        var scheduler;
-
-
-        function mockDataFlowSource(definitionObj = {}) {
-            var observables = assign({ }, definitionObj);
-
-            return {
-                get: (observableName) => {
-                    if(!observables.hasOwnProperty(observableName)) {
-                        observables[observableName] = scheduler.createHotObservable();
-                    }
-
-                    return observables[observableName];
-                }
-            };
-        }
-
-
-        function mockUser(definitionObj = {}) {
-            var eventsMap = { };
-
-            Object.keys(definitionObj).forEach((name) => {
-                var [ selector, event ] = name.split('@');
-
-                if(!eventsMap.hasOwnProperty(selector)) {
-                    eventsMap[selector] = { };
-                }
-
-                eventsMap[selector][event] = definitionObj[name];
-            });
-
-            return {
-                event$: (selector, event) => {
-                    if(!eventsMap.hasOwnProperty(selector)) {
-                        eventsMap[selector] = { };
-                    }
-
-                    if(!eventsMap[selector].hasOwnProperty(event)) {
-                        eventsMap[selector][event] = scheduler.createHotObservable();
-                    }
-
-                    return eventsMap[selector][event];
-                }
-            };
-        }
 
         setup(() => {
-            scheduler = new Rx.TestScheduler();
-
             intentInstance = intent();
         });
 
         teardown(() => {
-            intentInstance = fakeView = fakeAttrs = scheduler = null;
+            intentInstance = null;
         });
 
 
-        test('should change value every time value attribute changes', () => {
+        test('should change value every time value attribute changes',
+        inject((scheduler, onNext, mockUser, mockDataFlowSource) => {
             intentInstance.inject(mockUser(), mockDataFlowSource({
                 value$: scheduler.createHotObservable(
                     onNext(100, 'abc'),
@@ -131,10 +81,11 @@ suite('intent', () => {
                 onNext(200, 'def'),
                 onNext(250, 'ghi')
             ]);
-        });
+        }));
 
 
-        test('should change value every time input event on field is emitted', () => {
+        test('should change value every time input event on field is emitted',
+        inject((scheduler, onNext, mockUser, mockDataFlowSource) => {
             intentInstance.inject(mockUser({
                 '#field@input': scheduler.createHotObservable(
                     onNext(100, { target: { value: 'abc' } }),
@@ -156,10 +107,11 @@ suite('intent', () => {
                 onNext(250, 'ghi')
             ]);
 
-        });
+        }));
 
 
-        test('should change value only if it is different than previous one', () => {
+        test('should change value only if it is different than previous one',
+        inject((scheduler, onNext, mockUser, mockDataFlowSource) => {
             intentInstance.inject(mockUser({
                 '#field@input': scheduler.createHotObservable(
                     onNext(100, { target: { value: 'abc' } }),
@@ -186,7 +138,7 @@ suite('intent', () => {
                 onNext(199, 'def'),
                 onNext(250, 'ghi')
             ]);
-        });
+        }));
 
     });
 

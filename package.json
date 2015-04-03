@@ -33,6 +33,8 @@
     "browserify": "~9.0",
     "chai": "~2.1",
     "chai-equal-collection": "erykpiast/chai-equal-collection",
+    "depender": "^0.1.0",
+    "di": "0.0.1",
     "extend": "~2.0",
     "glob": "~5.0",
     "gulp": "~3.8",
