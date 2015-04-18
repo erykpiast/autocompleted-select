@@ -9,6 +9,7 @@ var browserify = require('browserify');
 var babelify = require('babelify');
 var aliasify = require('aliasify');
 var extend = require('extend');
+var brfs = require('brfs');
 
 var config = require('../config');
 
@@ -23,7 +24,9 @@ module.exports = function buildTestsTask(before, after) {
         bundler = bundler.add(filePath);
     });
 
-    bundler = bundler.transform(babelify.configure({
+    bundler = bundler
+    .transform(brfs)
+    .transform(babelify.configure({
         only: /^(?!.*node_modules)+.+\.js$/,
         sourceMap: 'inline',
         sourceMapRelative: __dirname

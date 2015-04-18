@@ -47,12 +47,12 @@ module.exports = function buildJsTask(before) {
             .pipe(source(config.dist.js.bundleName))
             .pipe(gulp.dest(config.dist.js.dir))
             .on('finish', function() {
-                gutil.log('building finished!');       
+                gutil.log('building finished!');
             })
             .pipe(connect.reload());
     };
-    
-    
+
+
 
     return function() {
         return _build();

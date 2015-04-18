@@ -1,19 +1,18 @@
-import Cycle from 'cyclejs';
 import { Rx } from 'cyclejs';
 
-export default function createAutocompletedTextModel() {
-    var autocompletedTextModel = Cycle.createModel(function (autocompletedTextIntent, inputAttributes) {
-        // available autocompletions for current text value
-        // autocompletions are sorted based on ranking, which is
-        // calculated based on strict string matching and position of current field value in autocompletion
-        // autocompetion "Car" will be higher than "Carusel" when text is "ca"
-        // autocompletion "the best of all" will be higher than "he is the best" when text is "best"
-        // autocompletions are case-insensitive
-        var autocompletions$ = Rx.Observable.combineLatest(
-            autocompletedTextIntent.get('valueChange$'),
-            inputAttributes.get('datalist$'),
+export default {
+    // available autocompletions for current text value
+    // autocompletions are sorted based on ranking, which is
+    // calculated based on strict string matching and position of current field value in autocompletion
+    // autocompetion "Car" will be higher than "Carusel" when text is "ca"
+    // autocompletion "the best of all" will be higher than "he is the best" when text is "best"
+    // autocompletions are case-insensitive
+    autocompletions$: (valueChange$, datalistAttr$) =>
+        Rx.Observable.combineLatest(
+            valueChange$,
+            datalistAttr$,
             (value, datalist) =>
-                value.length ? 
+                value.length ?
                 datalist // choose keywords matching to value and sort them by ranking
                     .map((keywords) => ({
                         value: keywords[0], // show only the first keyword
@@ -34,32 +33,34 @@ export default function createAutocompletedTextModel() {
                 datalist // or show all and sort alphabetically if value is empty
                     .map((keywords) => keywords[0])
                     .sort()
-        );
+        ),
 
-        // autocompletions shouldn't be visible when text field is not focused, list is empty
-        // and right after when autocompletion was choosen
-        var areAutocompletionsVisible$ = Rx.Observable.merge(
+    // autocompletions shouldn't be visible when text field is not focused, list is empty
+    // and right after when autocompletion was choosen
+    areAutocompletionsVisible$: (autocompletions$, showAutocompletions$, hideAutocompletions$) =>
+        Rx.Observable.merge(
             autocompletions$
                 .filter((autocompletions) => autocompletions.length === 0)
                 .map(() => false),
-            autocompletedTextIntent.get('showAutocompletions$')
+            hideAutocompletions$
                 .map(() => true),
-            autocompletedTextIntent.get('hideAutocompletions$')
+            hideAutocompletions$
                 .map(() => false)
         )
         .distinctUntilChanged()
-        .startWith(false);
+        .startWith(false),
 
-        // index of autocompletion selected on the list
-        var highlightedAutocompletionIndex$ = Rx.Observable.combineLatest(
+    // index of autocompletion selected on the list
+    highlightedAutocompletionIndex$: (autocompletions$, valueChange$, hideAutocompletions$, selectedAutocompletionInput$) =>
+        Rx.Observable.combineLatest(
             Rx.Observable.merge(
                 Rx.Observable.merge( // reset position on text and when autocompletions list hides
-                    autocompletedTextIntent.get('valueChange$'),
-                    autocompletedTextIntent.get('hideAutocompletions$')
+                    valueChange$,
+                    hideAutocompletions$
                 )
                 .map(() => ({ direct: 0 }))
                 .delay(1), // reset after fetching value from autocompletions
-                autocompletedTextIntent.get('selectedAutocompletionInput$')
+                selectedAutocompletionInput$
             ),
             autocompletions$,
             (positionModifier, autocompletions) => ({ positionModifier, autocompletions })
@@ -79,65 +80,65 @@ export default function createAutocompletedTextModel() {
             }
 
             return position;
-        }).distinctUntilChanged();
+        }).distinctUntilChanged(),
 
-        // autocompletion that was highlighted and applied
-        var selectedAutocompletion$ = autocompletedTextIntent.get('selectedAutocompletionChange$')
-        .withLatestFrom(
-            highlightedAutocompletionIndex$,
-            (( enter, position ) => position)
-        )
-        .withLatestFrom(
-            autocompletions$,
-            ((position, autocompletions) => autocompletions[position])
-        )
-        .filter((value) => 'undefined' !== typeof value)
-        .distinctUntilChanged();
+    // autocompletion that was highlighted and applied
+    selectedAutocompletion$: (selectedAutocompletionChange$, highlightedAutocompletionIndex$, autocompletions$) =>
+        selectedAutocompletionChange$
+            .withLatestFrom(
+                highlightedAutocompletionIndex$,
+                (( enter, position ) => position)
+            )
+            .withLatestFrom(
+                autocompletions$,
+                ((position, autocompletions) => autocompletions[position])
+            )
+            .filter((value) => 'undefined' !== typeof value)
+            .distinctUntilChanged(),
 
-        // value is invalid when no autocompletions available
-        var isValueInvalid$ = Rx.Observable.merge(
+    // value is invalid when no autocompletions available
+    isValueInvalid$: (autocompletions$, finish$) =>
+        Rx.Observable.merge(
             autocompletions$
                 .map((autocompletions) =>
                     autocompletions.length === 0
                 ),
-            autocompletedTextIntent.get('finish$')
+            finish$
                 .map(() => false)
         )
         .distinctUntilChanged()
-        .startWith(false);
+        .startWith(false),
 
-        // text entered to field or propagated from component attribute
-        var notValidatedTextFieldValue$ = autocompletedTextIntent.get('valueChange$');
+    // text entered to field or propagated from component attribute
+    notValidatedTextFieldValue$: (valueChange$) => valueChange$,
 
-        // current text in field, can be entered directly or by choosing autocompletion
-        // when text field looses focus and value is not valid, previous valid value
-        var textFieldValue$ = Rx.Observable.merge(
+    // current text in field, can be entered directly or by choosing autocompletion
+    // when text field looses focus and value is not valid, previous valid value
+    textFieldValue$: (value$, notValidatedTextFieldValue$, finish$, selectedAutocompletion$) =>
+        Rx.Observable.merge(
             notValidatedTextFieldValue$,
             selectedAutocompletion$,
-            autocompletedTextIntent.get('finish$')
+            finish$
                 .withLatestFrom(
                     Rx.Observable.defer(() => value$),
                     (finish, value) => value
                 )
         )
-        .distinctUntilChanged();
+        .startWith('')
+        .distinctUntilChanged(),
 
-        // value that will be exported to attribute and emitted with change event of the component
-        // it has to match exactly with some autocompletion
-        var value$ = Rx.Observable.merge(
+    // value that will be exported to attribute and emitted with change event of the component
+    // it has to match exactly with some autocompletion
+    value$: (autocompletions$, selectedAutocompletion$, finish$, notValidatedTextFieldValue$) =>
+        Rx.Observable.merge(
             selectedAutocompletion$,
-            autocompletedTextIntent.get('finish$')
+            finish$
                 .withLatestFrom(
                     notValidatedTextFieldValue$,
                     autocompletions$,
                     (finish, value, autocompletions) => value === autocompletions[0] ? value : null
                 )
                 .filter((value) => value !== null)
-        ).distinctUntilChanged();
-
-        return { value$, textFieldValue$, autocompletions$, highlightedAutocompletionIndex$, areAutocompletionsVisible$, isValueInvalid$ };
-    });
-
-    return autocompletedTextModel;
-}
+        ).distinctUntilChanged()
+};
 

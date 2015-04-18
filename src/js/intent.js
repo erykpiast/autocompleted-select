@@ -1,5 +1,3 @@
-import Cycle from 'cyclejs';
-// import R from 'ramda';
 import { Rx } from 'cyclejs';
 
 const UP = 38;
@@ -7,44 +5,49 @@ const DOWN = 40;
 const ENTER = 13;
 
 
-export default function createAutocompletedTextIntent() {
-    return Cycle.createIntent(function (autocompletedTextUser, inputAttributes) {
-        var up$ = autocompletedTextUser.event$('#field', 'keydown').filter(({ keyCode }) => (keyCode === UP));
-        var down$ = autocompletedTextUser.event$('#field', 'keydown').filter(({ keyCode }) => (keyCode === DOWN));
-        var enter$ = autocompletedTextUser.event$('#field', 'keydown').filter(({ keyCode }) => (keyCode === ENTER));
-
-        var notEnter$ = autocompletedTextUser.event$('#field', 'keydown').filter(({ keyCode }) => (keyCode !== ENTER));
-
-        return {
-            valueChange$: Rx.Observable.merge(
-                autocompletedTextUser.event$('#field', 'input')
-                    .map(({ target }) => target.value),
-                inputAttributes.get('value$')
-            ).distinctUntilChanged(),
-            selectedAutocompletionInput$: Rx.Observable.merge(
-                autocompletedTextUser.event$('.autocompletion', 'mouseenter')
-                    .map(({ target }) => ({
-                        direct: target.index
-                    })),
-                Rx.Observable.merge(
-                    up$.map(() => -1),
-                    down$.map(() => 1)
-                ).map((modifier) => ({ modifier }))
-            ).startWith(0),
-            selectedAutocompletionChange$: Rx.Observable.merge(
-                enter$,
-                autocompletedTextUser.event$('.autocompletion', 'mousedown')
-            ).map(() => true),
-            showAutocompletions$: Rx.Observable.merge(
-                notEnter$,
-                autocompletedTextUser.event$('#field', 'focus')
-            ).map(() => true),
-            hideAutocompletions$: Rx.Observable.merge(
-                enter$,
-                autocompletedTextUser.event$('#field', 'blur')
-            ).map(() => true),
-            finish$: autocompletedTextUser.event$('#field', 'blur')
-                .map(() => true)
-        };
-    });
-}
+export default {
+    keydownOnField$: (interaction$) => interaction$.choose('#field', 'keydown'),
+    focusOnField$: (interaction$) => interaction$.choose('#field', 'focus'),
+    blurOnField$: (interaction$) => interaction$.choose('#field', 'blur'),
+    inputOnField$: (interaction$) => interaction$.choose('#field', 'input').tap(console.log.bind(console)),
+    mouseenterOnAutocompletion$: (interaction$) => interaction$.choose('.autocompletion', 'mouseenter'),
+    mousedownOnAutocompletion$: (interaction$) => interaction$.choose('.autocompletion', 'mousedown'),
+    up$: (keydownOnField$) => keydownOnField$.filter(({ keyCode }) => (keyCode === UP)),
+    down$: (keydownOnField$) => keydownOnField$.filter(({ keyCode }) => (keyCode === DOWN)),
+    enter$: (keydownOnField$) => keydownOnField$.filter(({ keyCode }) => (keyCode === ENTER)),
+    notEnter$: (keydownOnField$) => keydownOnField$.filter(({ keyCode }) => (keyCode !== ENTER)),
+    valueChange$: (inputOnField$, valueAttr$) =>
+        Rx.Observable.merge(
+            inputOnField$
+                .map(({ target }) => target.value),
+            valueAttr$
+        ).distinctUntilChanged(),
+    selectedAutocompletionInput$: (mouseenterOnAutocompletion$, up$, down$) =>
+        Rx.Observable.merge(
+            mouseenterOnAutocompletion$
+                .map(({ target }) => ({
+                    direct: target.index
+                })),
+            Rx.Observable.merge(
+                up$.map(() => -1),
+                down$.map(() => 1)
+            ).map((modifier) => ({ modifier }))
+        ).startWith(0),
+    selectedAutocompletionChange$: (mousedownOnAutocompletion$, enter$) =>
+        Rx.Observable.merge(
+            enter$,
+            mousedownOnAutocompletion$
+        ).map(() => true),
+    showAutocompletions$: (focusOnField$, notEnter$) =>
+        Rx.Observable.merge(
+            notEnter$,
+            focusOnField$
+        ).map(() => true),
+    hideAutocompletions$: (blurOnField$, enter$) =>
+        Rx.Observable.merge(
+            enter$,
+            blurOnField$
+        ).map(() => true),
+    finish$: (blurOnField$) =>
+        blurOnField$.map(() => true)
+};
