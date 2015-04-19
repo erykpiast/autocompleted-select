@@ -6,12 +6,12 @@ const ENTER = 13;
 
 
 export default {
-    keydownOnField$: (interaction$) => interaction$.choose('#field', 'keydown'),
     focusOnField$: (interaction$) => interaction$.choose('#field', 'focus'),
     blurOnField$: (interaction$) => interaction$.choose('#field', 'blur'),
-    inputOnField$: (interaction$) => interaction$.choose('#field', 'input').tap(console.log.bind(console)),
+    inputOnField$: (interaction$) => interaction$.choose('#field', 'input'),
     mouseenterOnAutocompletion$: (interaction$) => interaction$.choose('.autocompletion', 'mouseenter'),
     mousedownOnAutocompletion$: (interaction$) => interaction$.choose('.autocompletion', 'mousedown'),
+    keydownOnField$: (interaction$) => interaction$.choose('#field', 'keydown'),
     up$: (keydownOnField$) => keydownOnField$.filter(({ keyCode }) => (keyCode === UP)),
     down$: (keydownOnField$) => keydownOnField$.filter(({ keyCode }) => (keyCode === DOWN)),
     enter$: (keydownOnField$) => keydownOnField$.filter(({ keyCode }) => (keyCode === ENTER)),
@@ -32,7 +32,7 @@ export default {
                 up$.map(() => -1),
                 down$.map(() => 1)
             ).map((modifier) => ({ modifier }))
-        ).startWith(0),
+        ),
     selectedAutocompletionChange$: (mousedownOnAutocompletion$, enter$) =>
         Rx.Observable.merge(
             enter$,

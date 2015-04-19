@@ -66,7 +66,7 @@ export default function injectTestingUtils(fn) {
         });
 
         return {
-            event$: (selector, event) => {
+            choose: (selector, event) => {
                 if(!eventsMap.hasOwnProperty(selector)) {
                     eventsMap[selector] = { };
                 }
