@@ -93,10 +93,10 @@ suite('model', () => {
             }));
 
         });
-        
-        
+
+
         suite('areAutocompletionsVisible$', () => {
-            
+
             test('should be hidden by default',
             inject((createObservable, onNext, callWithObservables, getValues) => {
                 let areAutocompletionsVisible$ = callWithObservables(model.areAutocompletionsVisible$, { });
@@ -114,9 +114,10 @@ suite('model', () => {
             inject((createObservable, onNext, callWithObservables, getValues) => {
                 let areAutocompletionsVisible$ = callWithObservables(model.areAutocompletionsVisible$, {
                     autocompletions$: createObservable(
-                        onNext(100, [ 'definition', 'undefined' ]),
-                        onNext(200, [ ]),
-                        onNext(250, [ 'abc' ])
+                        onNext(200, [ ])
+                    ),
+                    showAutocompletions$: createObservable(
+                        onNext(100, 'something')
                     )
                 });
 
@@ -124,7 +125,7 @@ suite('model', () => {
 
                 assert.equalCollection(
                     results,
-                    [ false, true, false, true ]
+                    [ false, true, false ]
                 );
 
             }));
@@ -160,7 +161,7 @@ suite('model', () => {
                         onNext(101, [ 'definition', 'undefined' ]),
                         onNext(199, [ ]),
                         onNext(250, [ 'abc' ]),
-                        onNext(251, [ ]),
+                        onNext(251, [ ])
                     ),
                     showAutocompletions$: createObservable(
                         onNext(100, [ 'something' ]),
@@ -182,268 +183,346 @@ suite('model', () => {
             }));
 
         });
-        
-        
-        // suite('highlightedAutocompletionIndex$', () => {
-
-        //     test('should reset index to 0 every time value changes',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let highlightedAutocompletionIndex$ = callWithObservables(model.highlightedAutocompletionIndex$, {
-        //             valueChange$: createObservable(
-        //                 onNext(100, 'something'),
-        //                 onNext(200, 'anything')
-        //             ),
-        //             autocompletions$: [ 'abc1', 'abc2', 'adef', 'axyz' ]
-        //         });
-
-        //         let results = getValues(highlightedAutocompletionIndex$);
 
-        //         assert.equal(results.length, 3);
 
-        //     }));
+        suite('highlightedAutocompletionIndex$', () => {
 
+            test('should change index value when it changes directly',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let highlightedAutocompletionIndex$ = callWithObservables(model.highlightedAutocompletionIndex$, {
+                    selectedAutocompletionInput$: createObservable(
+                        onNext(100, { direct: 2 }),
+                        onNext(200, { direct: 1 }),
+                        onNext(300, { direct: 3 }),
+                        onNext(400, { direct: 0 }),
+                        onNext(500, { direct: 2 })
+                    ),
+                    autocompletions$: [ 'abc1', 'abc2', 'adef', 'axyz' ]
+                });
+
+                let results = getValues(highlightedAutocompletionIndex$);
+
+                assert.equalCollection(
+                    results,
+                    [ 2, 1, 3, 0, 2 ]
+                );
+
+            }));
 
-        //     test('should change value every time datalist changes',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let autocompletions$ = callWithObservables(model.autocompletions$, {
-        //             valueChange$: 'abc',
-        //             datalistAttr$: createObservable(
-        //                 onNext(100, [ [ 'abc1' ], [ 'abc2' ], [ 'def' ], [ 'xyz' ] ]),
-        //                 onNext(200, [ [ 'abc2' ], [ 'def' ] ]),
-        //                 onNext(250, [ [ 'abc1' ], [ 'xyz' ] ])
-        //             )
-        //         });
-
-        //         let results = getValues(autocompletions$);
-
-        //         assert.equal(results.length, 3);
 
-        //     }));
+            test('should change index value when it changes by modifier',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let highlightedAutocompletionIndex$ = callWithObservables(model.highlightedAutocompletionIndex$, {
+                    selectedAutocompletionInput$: createObservable(
+                        onNext(100, { modifier: 1 }),
+                        onNext(200, { modifier: 1 }),
+                        onNext(300, { modifier: -1 }),
+                        onNext(400, { modifier: -1 }),
+                        onNext(500, { modifier: 1 })
+                    ),
+                    autocompletions$: [ 'abc1', 'abc2', 'adef', 'axyz' ]
+                });
+
+                let results = getValues(highlightedAutocompletionIndex$);
+
+                assert.equalCollection(
+                    results,
+                    [ 1, 2, 1, 0, 1 ]
+                );
+
+            }));
+
+        });
 
 
-        //     test('should show only autocompletions matching with current value',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let autocompletions$ = callWithObservables(model.autocompletions$, {
-        //             valueChange$: createObservable(
-        //                 onNext(100, 'abc'),
-        //                 onNext(200, 'def'),
-        //                 onNext(250, 'ghi')
-        //             ),
-        //             datalistAttr$: [ [ 'abc1' ], [ 'abc2' ], [ 'definition' ], [ 'undefined' ], [ 'xyz' ] ]
-        //         });
-
-        //         let results = getValues(autocompletions$);
-
-        //         assert.equalCollection(
-        //             results,
-        //             [
-        //                 [ 'abc1', 'abc2' ],
-        //                 [ 'definition', 'undefined' ],
-        //                 [ ]
-        //             ]
-        //         );
+        suite('selectedAutocompletion$', () => {
 
-        //     }));
+            test('should change selected autocompletion on change intent',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let selectedAutocompletion$ = callWithObservables(model.selectedAutocompletion$, {
+                    selectedAutocompletionChange$: createObservable(
+                        onNext(101, 'something'),
+                        onNext(201, 'anything')
+                    ),
+                    highlightedAutocompletionIndex$: createObservable(
+                        onNext(100, 1),
+                        onNext(200, 2)
+                    ),
+                    autocompletions$: [ 'abc', 'abc1', 'abc2' ]
+                });
+
+                let results = getValues(selectedAutocompletion$);
+
+                assert.equalCollection(
+                    results,
+                    [ 'abc1', 'abc2' ]
+                );
 
-        // });
+            }));
 
 
-        // suite('selectedAutocompletionInput$', () => {
+            test('should change selected autocompletion only if it is different than previous one',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let selectedAutocompletion$ = callWithObservables(model.selectedAutocompletion$, {
+                    selectedAutocompletionChange$: createObservable(
+                        onNext(101, 'something'),
+                        onNext(201, 'anything')
+                    ),
+                    highlightedAutocompletionIndex$: createObservable(
+                        onNext(100, 1)
+                    ),
+                    autocompletions$: [ 'abc', 'abc1', 'abc2' ]
+                });
 
-        //     test('should change index directly every time mouse is over autocompletion',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let selectedAutocompletionInput$ = callWithObservables(model.selectedAutocompletionInput$, {
-        //             mouseenterOnAutocompletion$: createObservable(
-        //                 onNext(100, { target: { index: 10 } }),
-        //                 onNext(200, { target: { index: 11 } }),
-        //                 onNext(250, { target: { index: 12 } })
-        //             )
-        //         });
+                let results = getValues(selectedAutocompletion$);
 
-        //         let results = getValues(selectedAutocompletionInput$);
+                assert.equalCollection(
+                    results,
+                    [ 'abc1' ]
+                );
 
-        //         assert.equalCollection(
-        //             results,
-        //             [ { direct: 10 }, { direct: 11 }, { direct: 12 } ]
-        //         );
+            }));
 
-        //     }));
+        });
 
 
-        //     test('should modify index every time up or down arrow key is pressed',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let selectedAutocompletionInput$ = callWithObservables(model.selectedAutocompletionInput$, {
-        //             up$: createObservable(
-        //                 onNext(100, 'something'),
-        //                 onNext(200, 'anything'),
-        //                 onNext(250, 'what else')
-        //             ),
-        //             down$: createObservable(
-        //                 onNext(120, 'something'),
-        //                 onNext(180, 'anything'),
-        //                 onNext(280, 'what else')
-        //             )
-        //         });
+        suite('isValueInvalid$', () => {
 
-        //         let results = getValues(selectedAutocompletionInput$);
+            test('should be value invalid if there is no autocompletion and valid when there is some',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let isValueInvalid$ = callWithObservables(model.isValueInvalid$, {
+                    autocompletions$: createObservable(
+                        onNext(100, [ 'abc', 'abc1' ]),
+                        onNext(200, [ ]),
+                        onNext(300, [ 'xyz' ])
+                    )
+                });
 
-        //         assert.equalCollection(
-        //             results,
-        //             [ { modifier: -1 }, { modifier: 1 }, { modifier: 1 }, { modifier: -1 }, { modifier: -1 }, { modifier: 1 } ]
-        //         );
+                let results = getValues(isValueInvalid$);
 
-        //     }));
+                assert.equalCollection(
+                    results,
+                    [ false, true, false ]
+                );
 
-        // });
+            }));
 
 
-        // suite('selectedAutocompletionChange$', () => {
+            test('should be value not invalid when editing is finished',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let isValueInvalid$ = callWithObservables(model.isValueInvalid$, {
+                    finish$: createObservable(
+                        onNext(101, 'something'),
+                        onNext(201, 'anything')
+                    ),
+                    autocompletions$: createObservable(
+                        onNext(100, [ ]),
+                        onNext(200, [ ])
+                    )
+                });
 
-        //     test('should trigger change every time mouse button is pressed over autocompletion',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let selectedAutocompletionChange$ = callWithObservables(model.selectedAutocompletionChange$, {
-        //             mousedownOnAutocompletion$: createObservable(
-        //                 onNext(100, 'something'),
-        //                 onNext(200, 'anything')
-        //             )
-        //         });
+                let results = getValues(isValueInvalid$);
 
-        //         let results = getValues(selectedAutocompletionChange$);
+                assert.equalCollection(
+                    results,
+                    [ false, true, false, true, false ]
+                );
 
-        //         assert.equalCollection(
-        //             results,
-        //             [ true, true ]
-        //         );
+            }));
 
-        //     }));
+        });
 
 
-        //     test('should trigger change every time enter key is pressed',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let selectedAutocompletionChange$ = callWithObservables(model.selectedAutocompletionChange$, {
-        //             enter$: createObservable(
-        //                 onNext(100, 'something'),
-        //                 onNext(200, 'anything')
-        //             )
-        //         });
+        suite('notValidatedTextFieldValue$', () => {
 
-        //         let results = getValues(selectedAutocompletionChange$);
+            test('should pass every value from valueChange$',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let notValidatedTextFieldValue$ = callWithObservables(model.notValidatedTextFieldValue$, {
+                    valueChange$: createObservable(
+                        onNext(100, 'something'),
+                        onNext(200, 'anything'),
+                        onNext(300, 'xxx')
+                    )
+                });
 
-        //         assert.equalCollection(
-        //             results,
-        //             [ true, true ]
-        //         );
+                let results = getValues(notValidatedTextFieldValue$);
 
-        //     }));
+                assert.equalCollection(
+                    results,
+                    [ 'something', 'anything', 'xxx' ]
+                );
 
-        // });
+            }));
 
+        });
 
-        // suite('showAutocompletions$', () => {
 
-        //     test('should show autocompletion every time any key except enter is pressed',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let showAutocompletions$ = callWithObservables(model.showAutocompletions$, {
-        //             notEnter$: createObservable(
-        //                 onNext(100, 'something'),
-        //                 onNext(200, 'anything')
-        //             )
-        //         });
+        suite('textFieldValue$', () => {
 
-        //         let results = getValues(showAutocompletions$);
+            test('should start with empty value',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let textFieldValue$ = callWithObservables(model.textFieldValue$, { });
 
-        //         assert.equalCollection(
-        //             results,
-        //             [ true, true ]
-        //         );
+                let results = getValues(textFieldValue$);
 
-        //     }));
+                assert.equalCollection(
+                    results,
+                    [ '' ]
+                );
 
+            }));
 
-        //     test('should hide autocompletions every time field is focused',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let showAutocompletions$ = callWithObservables(model.showAutocompletions$, {
-        //             focusOnField$: createObservable(
-        //                 onNext(100, 'something'),
-        //                 onNext(200, 'anything')
-        //             )
-        //         });
+            test('should change every time text field value changes',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let textFieldValue$ = callWithObservables(model.textFieldValue$, {
+                    notValidatedTextFieldValue$: createObservable(
+                        onNext(101, 'abc'),
+                        onNext(201, '123'),
+                        onNext(301, 'xyz')
+                    )
+                });
 
-        //         let results = getValues(showAutocompletions$);
+                let results = getValues(textFieldValue$);
 
-        //         assert.equalCollection(
-        //             results,
-        //             [ true, true ]
-        //         );
+                assert.equalCollection(
+                    results,
+                    [ '', 'abc', '123', 'xyz' ]
+                );
 
-        //     }));
+            }));
 
-        // });
 
-
-        // suite('hideAutocompletions$', () => {
-
-        //     test('should hide autocompletions every time enter key is pressed',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let hideAutocompletions$ = callWithObservables(model.hideAutocompletions$, {
-        //             enter$: createObservable(
-        //                 onNext(100, 'something'),
-        //                 onNext(200, 'anything')
-        //             )
-        //         });
-
-        //         let results = getValues(hideAutocompletions$);
-
-        //         assert.equalCollection(
-        //             results,
-        //             [ true, true ]
-        //         );
-
-        //     }));
-
-
-        //     test('should hide autocompletions every time field is blured',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let hideAutocompletions$ = callWithObservables(model.hideAutocompletions$, {
-        //             blurOnField$: createObservable(
-        //                 onNext(100, 'something'),
-        //                 onNext(200, 'anything')
-        //             )
-        //         });
-
-        //         let results = getValues(hideAutocompletions$);
-
-        //         assert.equalCollection(
-        //             results,
-        //             [ true, true ]
-        //         );
-
-        //     }));
-
-        // });
-
-
-        // suite('finish$', () => {
-
-        //     test('should trigger editing finish every time field is blured',
-        //     inject((createObservable, onNext, callWithObservables, getValues) => {
-        //         let finish$ = callWithObservables(model.finish$, {
-        //             blurOnField$: createObservable(
-        //                 onNext(100, 'something'),
-        //                 onNext(200, 'anything')
-        //             )
-        //         });
-
-        //         let results = getValues(finish$);
-
-        //         assert.equalCollection(
-        //             results,
-        //             [ true, true ]
-        //         );
-
-        //     }));
-
-        // });
+            test('should change every time selected autocompletion changes',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let textFieldValue$ = callWithObservables(model.textFieldValue$, {
+                    selectedAutocompletion$: createObservable(
+                        onNext(101, 'abc'),
+                        onNext(201, '123'),
+                        onNext(301, 'xyz')
+                    )
+                });
+
+                let results = getValues(textFieldValue$);
+
+                assert.equalCollection(
+                    results,
+                    [ '', 'abc', '123', 'xyz' ]
+                );
+
+            }));
+
+
+            test('should change every time edition finishes with latest distinct value from value$',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let textFieldValue$ = callWithObservables(model.textFieldValue$, {
+                    finish$: createObservable(
+                        onNext(101, 'something'),
+                        onNext(201, 'anything'),
+                        onNext(301, 'whatever')
+                    ),
+                    value$: createObservable(
+                        onNext(100, 'abc'),
+                        onNext(300, 'xyz')
+                    )
+                });
+
+                let results = getValues(textFieldValue$);
+
+                assert.equalCollection(
+                    results,
+                    [ '', 'abc', 'xyz' ]
+                );
+
+            }));
+
+        });
+
+
+        suite('value$', () => {
+
+            test('should value change every time selected autocompletion changes',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let value$ = callWithObservables(model.value$, {
+                    selectedAutocompletion$: createObservable(
+                        onNext(100, 'abc1'),
+                        onNext(200, 'abc2')
+                    )
+                });
+
+                let results = getValues(value$);
+
+                assert.equalCollection(
+                    results,
+                    [ 'abc1', 'abc2' ]
+                );
+
+            }));
+
+
+            test('should value change every time editing finishes and there is some autocompletion for current text field value',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let value$ = callWithObservables(model.value$, {
+                    finish$: createObservable(
+                        onNext(101, 'something'),
+                        onNext(201, 'anything'),
+                        onNext(301, 'anything')
+                    ),
+                    notValidatedTextFieldValue$: createObservable(
+                        onNext(100, 'abc'),
+                        onNext(200, 'xyz'),
+                        onNext(300, 'def')
+                    ),
+                    autocompletions$:  createObservable(
+                        onNext(100, [ 'abc', 'abc1', 'abc2' ]),
+                        onNext(200, [ ]),
+                        onNext(300, [ 'def', 'definition', 'undefined' ])
+                    )
+                });
+
+                let results = getValues(value$);
+
+                assert.equalCollection(
+                    results,
+                    [ 'abc', 'def' ]
+                );
+
+            }));
+
+
+            test('should value change if previous value was different',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let value$ = callWithObservables(model.value$, {
+                    selectedAutocompletion$: createObservable(
+                        onNext(100, 'abc'),
+                        onNext(200, 'def')
+                    ),
+                    finish$: createObservable(
+                        onNext(101, 'something'),
+                        onNext(201, 'anything'),
+                        onNext(301, 'anything')
+                    ),
+                    notValidatedTextFieldValue$: createObservable(
+                        onNext(100, 'abc'),
+                        onNext(200, 'xyz'),
+                        onNext(300, 'def')
+                    ),
+                    autocompletions$:  createObservable(
+                        onNext(100, [ 'abc', 'abc1', 'abc2' ]),
+                        onNext(200, [ ]),
+                        onNext(300, [ 'def', 'definition', 'undefined' ])
+                    )
+                });
+
+                let results = getValues(value$);
+
+                assert.equalCollection(
+                    results,
+                    [ 'abc', 'def' ]
+                );
+
+            }));
+
+        });
 
     });
 

@@ -42,13 +42,13 @@ export default {
             autocompletions$
                 .filter((autocompletions) => autocompletions.length === 0)
                 .map(() => false),
-            hideAutocompletions$
+            showAutocompletions$
                 .map(() => true),
             hideAutocompletions$
                 .map(() => false)
         )
-        .distinctUntilChanged()
-        .startWith(false),
+        .startWith(false)
+        .distinctUntilChanged(),
 
     // index of autocompletion selected on the list
     highlightedAutocompletionIndex$: (autocompletions$, valueChange$, hideAutocompletions$, selectedAutocompletionInput$) =>
@@ -106,8 +106,8 @@ export default {
             finish$
                 .map(() => false)
         )
-        .distinctUntilChanged()
-        .startWith(false),
+        .startWith(false)
+        .distinctUntilChanged(),
 
     // text entered to field or propagated from component attribute
     notValidatedTextFieldValue$: (valueChange$) => valueChange$,
@@ -120,7 +120,7 @@ export default {
             selectedAutocompletion$,
             finish$
                 .withLatestFrom(
-                    Rx.Observable.defer(() => value$),
+                    value$,
                     (finish, value) => value
                 )
         )
