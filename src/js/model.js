@@ -7,9 +7,9 @@ export default {
     // autocompetion "Car" will be higher than "Carusel" when text is "ca"
     // autocompletion "the best of all" will be higher than "he is the best" when text is "best"
     // autocompletions are case-insensitive
-    autocompletions$: (valueChange$, datalistAttr$) =>
+    autocompletions$: (textFieldValue$, datalistAttr$) =>
         Rx.Observable.combineLatest(
-            valueChange$,
+            textFieldValue$,
             datalistAttr$,
             (value, datalist) =>
                 value.length ?
@@ -33,7 +33,7 @@ export default {
                 datalist // or show all and sort alphabetically if value is empty
                     .map((keywords) => keywords[0])
                     .sort()
-        ),
+        ).distinctUntilChanged((autocompletions) => JSON.stringify(autocompletions)),
 
     // autocompletions shouldn't be visible when text field is not focused, list is empty
     // and right after when autocompletion was choosen
@@ -43,7 +43,10 @@ export default {
                 .filter((autocompletions) => autocompletions.length === 0)
                 .map(() => false),
             showAutocompletions$
-                .map(() => true),
+                .withLatestFrom(
+                    autocompletions$,
+                    (show, autocompletions) => autocompletions.length !== 0
+                ),
             hideAutocompletions$
                 .map(() => false)
         )
@@ -110,7 +113,8 @@ export default {
         .distinctUntilChanged(),
 
     // text entered to field or propagated from component attribute
-    notValidatedTextFieldValue$: (valueChange$) => valueChange$,
+    notValidatedTextFieldValue$: (valueChange$) => valueChange$
+        .distinctUntilChanged(),
 
     // current text in field, can be entered directly or by choosing autocompletion
     // when text field looses focus and value is not valid, previous valid value
@@ -132,6 +136,11 @@ export default {
     value$: (autocompletions$, selectedAutocompletion$, finish$, notValidatedTextFieldValue$) =>
         Rx.Observable.merge(
             selectedAutocompletion$,
+            Rx.Observable.combineLatest(
+                notValidatedTextFieldValue$.take(1),
+                autocompletions$.take(1),
+                (value, autocompletions) => value === autocompletions[0] ? value : null
+            ),
             finish$
                 .withLatestFrom(
                     notValidatedTextFieldValue$,

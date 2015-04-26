@@ -213,30 +213,6 @@ suite('intent', () => {
 
             }));
 
-
-            test('should change value only if it is different than previous one',
-            inject((createObservable, onNext, callWithObservables, getValues) => {
-                let valueChange$ = callWithObservables(intent.valueChange$, {
-                    inputOnField$: createObservable(
-                        onNext(100, { target: { value: 'abc' } }),
-                        onNext(200, { target: { value: 'def' } }),
-                        onNext(250, { target: { value: 'ghi' } })
-                    ),
-                    valueAttr$:  createObservable(
-                        onNext(101, 'abc'),
-                        onNext(199, 'def'),
-                        onNext(251, 'ghi')
-                    )
-                });
-
-                let results = getValues(valueChange$);
-
-                assert.equalCollection(
-                    results,
-                    [ 'abc', 'def', 'ghi' ]
-                );
-            }));
-
         });
 
 

@@ -20,4 +20,10 @@ createComponent('autocompleted-select', function(interaction$, props) {
         valueAttr$: props.value
     });
 
+    model$$.value$.skip(1).subscribe((value) => {
+        this.value = value;
+        
+        this.dispatchEvent(new Event('change'));
+    });
+
 }, [ 'value', 'datalist' ]);

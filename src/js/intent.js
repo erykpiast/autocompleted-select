@@ -21,7 +21,7 @@ export default {
             inputOnField$
                 .map(({ target }) => target.value),
             valueAttr$
-        ).distinctUntilChanged(),
+        ),
     selectedAutocompletionInput$: (mouseenterOnAutocompletion$, up$, down$) =>
         Rx.Observable.merge(
             mouseenterOnAutocompletion$

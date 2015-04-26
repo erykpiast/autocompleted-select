@@ -17,12 +17,12 @@ export default function view(
         areAutocompletionsVisible$,
         highlightedAutocompletionIndex$,
         isValueInvalid$,
-        (value, autocompletions, areAutocompletionsVisible, highlightedAutocompletionIndex, isValueInvalid) =>
+        (textFieldValue, autocompletions, areAutocompletionsVisible, highlightedAutocompletionIndex, isValueInvalid) =>
         h('div', [
             h('style', stylesheet),
             h('input#field', {
                 type: 'text',
-                value: value,
+                value: textFieldValue,
                 className: isValueInvalid ? 'is-invalid' : ''
             }),
             h('ul', {

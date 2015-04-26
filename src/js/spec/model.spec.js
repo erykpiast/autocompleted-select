@@ -35,7 +35,7 @@ suite('model', () => {
             test('should change value every time value changes',
             inject((createObservable, onNext, callWithObservables, getValues) => {
                 let autocompletions$ = callWithObservables(model.autocompletions$, {
-                    valueChange$: createObservable(
+                    textFieldValue$: createObservable(
                         onNext(100, 'abc'),
                         onNext(200, 'def'),
                         onNext(250, 'ghi')
@@ -53,7 +53,7 @@ suite('model', () => {
             test('should change value every time datalist changes',
             inject((createObservable, onNext, callWithObservables, getValues) => {
                 let autocompletions$ = callWithObservables(model.autocompletions$, {
-                    valueChange$: 'abc',
+                    textFieldValue$: 'abc',
                     datalistAttr$: createObservable(
                         onNext(100, [ [ 'abc1' ], [ 'abc2' ], [ 'def' ], [ 'xyz' ] ]),
                         onNext(200, [ [ 'abc2' ], [ 'def' ] ]),
@@ -71,7 +71,7 @@ suite('model', () => {
             test('should show only autocompletions matching with current value',
             inject((createObservable, onNext, callWithObservables, getValues) => {
                 let autocompletions$ = callWithObservables(model.autocompletions$, {
-                    valueChange$: createObservable(
+                    textFieldValue$: createObservable(
                         onNext(100, 'abc'),
                         onNext(200, 'def'),
                         onNext(250, 'ghi')
