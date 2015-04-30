@@ -24,6 +24,7 @@
   "homepage": "https://github.com/erykpiast/autocompleted-select",
   "dependencies": {
     "cyclejs": "~0.20",
+    "cyclejs-group": "^0.3.0",
     "foreach": "^2.0.5",
     "get-parameter-names": "^0.2.0",
     "map-values": "^1.0.1",

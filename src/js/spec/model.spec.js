@@ -114,10 +114,11 @@ suite('model', () => {
             inject((createObservable, onNext, callWithObservables, getValues) => {
                 let areAutocompletionsVisible$ = callWithObservables(model.areAutocompletionsVisible$, {
                     autocompletions$: createObservable(
+                        onNext(100, [ 'abc' ]),
                         onNext(200, [ ])
                     ),
                     showAutocompletions$: createObservable(
-                        onNext(100, 'something')
+                        onNext(101, 'something')
                     )
                 });
 
@@ -135,12 +136,16 @@ suite('model', () => {
             inject((createObservable, onNext, callWithObservables, getValues) => {
                 let areAutocompletionsVisible$ = callWithObservables(model.areAutocompletionsVisible$, {
                     showAutocompletions$: createObservable(
-                        onNext(100, [ 'something' ]),
-                        onNext(200, [ 'anything' ])
+                        onNext(101, [ 'something' ]),
+                        onNext(201, [ 'anything' ])
                     ),
                     hideAutocompletions$: createObservable(
                         onNext(150, [ 'something' ]),
                         onNext(250, [ 'anything' ])
+                    ),
+                    autocompletions$: createObservable(
+                        onNext(100, [ 'abc' ]),
+                        onNext(200, [ 'def' ])
                     )
                 });
 
@@ -152,20 +157,46 @@ suite('model', () => {
                 );
 
             }));
+            
+            
+            test('should not show autocompletions when show request is performed but there is no autocompletion',
+            inject((createObservable, onNext, callWithObservables, getValues) => {
+                let areAutocompletionsVisible$ = callWithObservables(model.areAutocompletionsVisible$, {
+                    showAutocompletions$: createObservable(
+                        onNext(101, [ 'something' ]),
+                        onNext(201, [ 'anything' ])
+                    ),
+                    autocompletions$: createObservable(
+                        onNext(100, [ ]),
+                        onNext(150, [ 'abc' ]),
+                        onNext(200, [ ])
+                    )
+                });
+
+                let results = getValues(areAutocompletionsVisible$);
+
+                assert.equalCollection(
+                    results,
+                    [ false ]
+                );
+
+            }));
 
 
             test('should emit value only if it is different than previous one',
             inject((createObservable, onNext, callWithObservables, getValues) => {
                 let areAutocompletionsVisible$ = callWithObservables(model.areAutocompletionsVisible$, {
                     autocompletions$: createObservable(
+                        onNext(99, [ 'def' ]),
                         onNext(101, [ 'definition', 'undefined' ]),
                         onNext(199, [ ]),
+                        onNext(200, [ 'xyz' ]),
                         onNext(250, [ 'abc' ]),
                         onNext(251, [ ])
                     ),
                     showAutocompletions$: createObservable(
                         onNext(100, [ 'something' ]),
-                        onNext(200, [ 'anything' ])
+                        onNext(201, [ 'anything' ])
                     ),
                     hideAutocompletions$: createObservable(
                         onNext(150, [ 'something' ]),
