@@ -1,6 +1,6 @@
 {
   "name": "autocompleted-select",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Select Web Component with autocompletion. Based on RxJS and VirtualDOM.",
   "main": "src/js/index.js",
   "scripts": {
@@ -24,10 +24,10 @@
   "homepage": "https://github.com/erykpiast/autocompleted-select",
   "dependencies": {
     "cyclejs": "~0.20",
-    "cyclejs-group": "^0.3.0",
-    "foreach": "^2.0.5",
-    "get-parameter-names": "^0.2.0",
-    "map-values": "^1.0.1",
+    "cyclejs-group": "~0.3",
+    "foreach": "~2.0",
+    "get-parameter-names": "~0.2",
+    "map-values": "~1.0",
     "ramda": "~0.13"
   },
   "devDependencies": {
