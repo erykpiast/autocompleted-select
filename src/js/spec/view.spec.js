@@ -4,7 +4,7 @@ import chai from 'chai';
 import { assert } from 'chai';
 
 // has to be imported before Rx
-import inject from './mock';
+import inject from 'cyclejs-mock';
 
 import { Rx } from 'cyclejs';
 

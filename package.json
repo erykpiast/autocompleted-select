@@ -26,7 +26,6 @@
     "cyclejs": "~0.20",
     "cyclejs-group": "~0.3",
     "foreach": "~2.0",
-    "get-parameter-names": "~0.2",
     "map-values": "~1.0",
     "ramda": "~0.13"
   },
@@ -37,7 +36,8 @@
     "browserify": "9.0.4",
     "chai": "~2.1",
     "chai-equal-collection": "erykpiast/chai-equal-collection",
-    "depender": "^0.1.0",
+    "cyclejs": "~0.20",
+    "cyclejs-mock": "~0.1",
     "extend": "~2.0",
     "glob": "~5.0",
     "gulp": "~3.8",
